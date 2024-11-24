@@ -19,44 +19,51 @@ folders, counts = zip(*most_common_folders)
 
 camModel = [d.get_CameraModel() for d in data if d.get_dateTime()]
 
+Owners = eval(open("camOwners.txt", encoding="utf-8").read())
+
 # Create a dictionary to count the number of photos taken by each camera model in each folder
 folder_counts = {folder: Counter([img.get_CameraModel() for img in data if img.get_parentFolder() == folder]) for folder in folders}
 
 # Create a list of unique camera models that occur more than 67 times
 camera_model_counts = Counter(camModel)
-unique_cameras = [camera for camera, count in camera_model_counts.items() if count > 67]
+unique_cameras = [camera for camera, count in camera_model_counts.items() if count > 1]
 
 # Add "Misc" category for cameras that do not meet the threshold
 misc_cameras = [camera for camera in camera_model_counts if camera not in unique_cameras]
-unique_cameras.append('Misc')
+unique_cameras.append('Diversen')
 
-# Sort unique_cameras based on the counts in camera_model_counts
-unique_cameras.sort(key=lambda camera: camera_model_counts[camera] if camera != 'Misc' else sum(camera_model_counts[misc_camera] for misc_camera in misc_cameras), reverse=True)
+# Map camera models to owners
+camera_to_owner = {camera: Owners.get(camera, 'Anderen - Onbekend') for camera in unique_cameras}
 
-# Create a color map for the camera models
-color_map = plt.get_cmap('tab20', len(unique_cameras))
+# Aggregate counts by owner
+owner_counts = {owner: Counter() for owner in set(camera_to_owner.values())}
+for folder in folders:
+    for camera, count in folder_counts[folder].items():
+        owner = camera_to_owner.get(camera, 'Anderen - Onbekend')
+        owner_counts[owner][folder] += count
+
+# Sort owners by total number of photos
+sorted_owners = sorted(owner_counts.items(), key=lambda x: sum(x[1].values()), reverse=True)
+
+# Create a color map for the owners
+color_map = plt.get_cmap('tab20', len(owner_counts))
 
 # Create a horizontal bar plot with stacked bars
-plt.figure(figsize=(10, 8))
+plt.figure(figsize=(14, 8))
 
 # Initialize the bottom position for the stacked bars
 bottom = [0] * len(folders)
 
-# Plot each camera model's contribution to the total count
-for i, camera in enumerate(unique_cameras):
-    if camera == 'Misc':
-        camera_counts_per_folder = [sum(folder_counts[folder][misc_camera] for misc_camera in misc_cameras) for folder in folders]
-    else:
-        camera_counts_per_folder = [folder_counts[folder][camera] for folder in folders]
-    plt.barh(folders, camera_counts_per_folder, left=bottom, color=color_map(i), label=camera)
-    bottom = [sum(x) for x in zip(bottom, camera_counts_per_folder)]
+# Plot each owner's contribution to the total count
+for i, (owner, counts) in enumerate(sorted_owners):
+    owner_counts_per_folder = [counts[folder] for folder in folders]
+    plt.barh(folders, owner_counts_per_folder, left=bottom, color=color_map(i), label=f"{owner} ({sum(counts.values())})")
+    bottom = [sum(x) for x in zip(bottom, owner_counts_per_folder)]
 
-print(len(unique_cameras))
-
-plt.xlabel('Number of Photos')
-plt.ylabel('Folder')
+plt.xlabel('Aantal Foto\'s')
+plt.ylabel('Map')
 plt.grid(True)
-plt.title('Top 25 Folders with the Most Photos by Camera Model')
+plt.title('Top 25 Mappen met de Meeste Foto\'s En wie heeft ze gemaakt?')
 plt.gca().invert_yaxis()  # Invert y-axis to have the folder with the most photos at the top
-plt.legend(title='Camera Model')
+plt.legend(title='Camera Eigenaar')
 plt.show()
