@@ -8,7 +8,7 @@ import PIL.ExifTags
 
 
 
-img = Image.open("Nacht\_MG_6862.jpg")
+img = Image.open("SleutelstamFotoArchief/2022-2023/[2023.07.x] - Zomerkamp Balkan/20230720_095521.jpg")
 exif_data = {
     PIL.ExifTags.TAGS[k]: v
     for k, v in img._getexif().items()

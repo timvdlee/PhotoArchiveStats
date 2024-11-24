@@ -29,7 +29,8 @@ for i in GPS_INFO:
         long = dms_to_decimal(*info[4])
         if math.isnan(lat) or math.isnan(long):
             continue
-        folium.Marker(location=[lat, long],tooltip=f"{obj.get_yearFolder()}/{obj.get_parentFolder()}/{obj.get_fileName()}").add_to(map)
+        popupStr = f'{obj.get_parentFolder()} {obj.get_dayOfWeek()} {obj.get_date()} {obj.get_time()} Camera: {obj.get_CameraModel()} Link: <a target="_blank" rel="noopener noreferrer" href=https://drive.google.com/drive/u/0/search?q={obj.get_fileName()}>{obj.get_fileName()}</a>'
+        folium.Marker(location=[lat, long],tooltip=f"{obj.get_yearFolder()}/{obj.get_parentFolder()}/{obj.get_fileName()}",popup=popupStr).add_to(map)
         it += 1
     except KeyError:
         pass
@@ -37,4 +38,4 @@ for i in GPS_INFO:
     print(it)
 
 # Save the map to an HTML file
-map.save('map.html')
+map.save('index.html')
