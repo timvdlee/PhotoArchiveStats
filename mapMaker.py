@@ -17,6 +17,9 @@ average_lat = 52.3676  # Hardcoded latitude
 average_lon = 4.9041   # Hardcoded longitude
 map = folium.Map(location=[average_lat, average_lon], zoom_start=10)
 
+Owners = eval(open("camOwners.txt",encoding="utf-8").read())
+
+
 def dms_to_decimal(degrees, minutes, seconds):
     return degrees + (minutes / 60) + (seconds / 3600)
 it = 0
@@ -29,7 +32,7 @@ for i in GPS_INFO:
         long = dms_to_decimal(*info[4])
         if math.isnan(lat) or math.isnan(long):
             continue
-        popupStr = f'{obj.get_parentFolder()} {obj.get_dayOfWeek()} {obj.get_date()} {obj.get_time()} Camera: {obj.get_CameraModel()} Link: <a target="_blank" rel="noopener noreferrer" href=https://drive.google.com/drive/u/0/search?q={obj.get_fileName()}>{obj.get_fileName()}</a>'
+        popupStr = f'{obj.get_parentFolder()} {obj.get_dayOfWeek()} {obj.get_date()} {obj.get_time()} Camera: {obj.get_CameraModel()} Auteur: {Owners.get(obj.get_CameraModel(),"Anderen - Onbekend")} Link: <a target="_blank" rel="noopener noreferrer" href=https://drive.google.com/drive/u/0/search?q={obj.get_fileName()}>{obj.get_fileName()}</a>'
         folium.Marker(location=[lat, long],tooltip=f"{obj.get_yearFolder()}/{obj.get_parentFolder()}/{obj.get_fileName()}",popup=popupStr).add_to(map)
         it += 1
     except KeyError:
